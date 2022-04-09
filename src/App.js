@@ -2,29 +2,67 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import MovieList from "./components/MovieList";
+import MovieListHeading from "./components/MovieListHeading";
+import SearchBox from "./components/SearchBox";
+import AddFavorites from "./components/AddFavorites";
+import RemoveFavorites from "./components/RemoveFavorites";
 
 const App = () => {
   const [movies, setMovies] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [searchValue, setSearchValue] = useState("");
 
-  const getMovieRequest = async () => {
-    const url = "https://www.omdbapi.com/?apikey=4c98002d&s=star%20wars";
+  const getMovieRequest = async (searchValue) => {
+    const url = `https://www.omdbapi.com/?apikey=4c98002d&s=${searchValue}`;
 
     const response = await fetch(url);
     const responseJson = await response.json();
 
-    console.log(responseJson);
-    setMovies(responseJson.Search);
+    // console.log(responseJson);
+    if (responseJson.Search) {
+      setMovies(responseJson.Search);
+    }
   };
 
   useEffect(() => {
-    getMovieRequest();
-  }, []);
+    getMovieRequest(searchValue);
+  }, [searchValue]);
+
+  const addFavoriteMovie = (movie) => {
+    const newFavoriteList = [...favorites, movie];
+    setFavorites(newFavoriteList);
+  };
+
+  const removeFavoriteMovie = (movie) => {
+    const newFavoriteList = favorites.filter(
+      (favorite) => favorite.imdbID !== movie.imdbID
+    );
+
+    setFavorites(newFavoriteList);
+  };
 
   return (
     <div className="container-fluid movie-app">
+      <div className="row d-flex align-items-center mt-4 mb-4">
+        <MovieListHeading heading="Movies" />
+        <SearchBox searchValue={searchValue} setSearchValue={setSearchValue} />
+      </div>
       <div className="movie-container">
-        <MovieList movies={movies} />
+        <MovieList
+          movies={movies}
+          handleFavoritesClick={addFavoriteMovie}
+          favoriteComponent={AddFavorites}
+        />
+      </div>
+      <div className="row d-flex align-items-center mt-4 mb-4">
+        <MovieListHeading heading="Favourites" />
+      </div>
+      <div className="movie-container">
+        <MovieList
+          movies={favorites}
+          handleFavoritesClick={removeFavoriteMovie}
+          favoriteComponent={RemoveFavorites}
+        />
       </div>
     </div>
   );
